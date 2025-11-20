@@ -1,4 +1,4 @@
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Update after deployment
+// const contractAddress = "0x057ef64E23666F000b34aE31332854aCBd1c8544";
 
 const contractABI = [
   {
@@ -25,13 +25,17 @@ let provider, signer, contract;
 async function connect() {
   if (!window.ethereum) return showToast("Please install MetaMask!");
 
-  // Create new provider and wait for MetaMask to connect
-  provider = new ethers.providers.Web3Provider(window.ethereum, "any"); // 👈 Important: "any" here prevents the error
+  provider = new ethers.providers.Web3Provider(window.ethereum, "any");
   await provider.send("eth_requestAccounts", []);
 
-  // Detect network after connecting
   const network = await provider.getNetwork();
   console.log("Connected to network:", network);
+
+  // 🚨 Ensure user is connected to Render blockchain
+  if (network.chainId !== 31337) {
+    showToast("⚠️ Switch MetaMask to SentinelChain RPC (31337)!");
+    return;
+  }
 
   signer = provider.getSigner();
   contract = new ethers.Contract(contractAddress, contractABI, signer);
@@ -54,13 +58,11 @@ async function getAlert() {
 async function classifyThreat(threatText) {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
-    const response = await fetch("http://127.0.0.1:5000/predict", {
+    const response = await fetch("https://sentinel-chain-backend.onrender.com/predict", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ description: threatText }),
       signal: controller.signal
     });
@@ -80,8 +82,6 @@ async function classifyThreat(threatText) {
     return "Unknown";
   }
 }
-
-
 
 async function reportAlert() {
   const text = document.getElementById("alertInput").value.trim();
@@ -104,7 +104,7 @@ async function reportAlert() {
 
 function showToast(msg) {
   const toast = document.getElementById("toast");
-  toast.innerText = msg;
+  toast.innerInnerText = msg;
   toast.style.display = "block";
   setTimeout(() => (toast.style.display = "none"), 3000);
 }
