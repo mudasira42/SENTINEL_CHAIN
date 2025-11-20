@@ -1,8 +1,11 @@
 Flask
+flask-cors
 gunicorn
+joblib
 scikit-learn
 numpy
 pandas
-joblib
+twilio
 pickle-mixin
-flask-cors
+python-dotenv
+requests
